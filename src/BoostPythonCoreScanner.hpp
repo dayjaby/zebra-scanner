@@ -101,7 +101,7 @@ public:
     void FirmwareUpdate();
     void FirmwareUpdateFromPlugin();
     void StartNewFirmware();
-    void AbortFirmwareUpdate();(/
+    void AbortFirmwareUpdate();*/
 
 	typedef py::object scanner_callback;
 	void ParseScannerXML(pugi::xml_node& scanner);	

@@ -1,4 +1,4 @@
-#include "BoostPythonCoreScanner.h"
+#include "BoostPythonCoreScanner.hpp"
 #include <stdlib.h>
 #include <sstream>
 
