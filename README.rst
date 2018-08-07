@@ -6,7 +6,7 @@ You can easily install zebra_scanner with pip:
 
 .. code-block:: sh
 
- pip install flexsm
+ pip install zebra_scanner
 
 
 *****************

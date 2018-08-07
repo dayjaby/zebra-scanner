@@ -17,7 +17,7 @@ zebra_scanner_module = Extension("zebra_scanner",
     library_dirs=['/usr/lib/zebra-scanner/corescanner', '/usr/lib/x86_64-linux-gnu'],
     libraries=['cs-client', 'cs-common', 'boost_python', 'python2.7', 'pugixml'],
     sources=[
-        os.path.join(src_path, 'BoostPythonCoreScanner.hpp'),
+        os.path.join(src_path, 'BoostPythonCoreScanner.h'),
         os.path.join(src_path, 'BoostPythonCoreScanner.cpp')
     ],
 
