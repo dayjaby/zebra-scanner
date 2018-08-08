@@ -6,7 +6,7 @@ You can easily install zebra_scanner with pip:
 
 .. code-block:: sh
 
- pip install zebra_scanner
+ pip install zebra-scanner
 
 
 *****************
@@ -32,11 +32,21 @@ A minimal example
      scanners.append(scanner)
      scanner.pull_trigger()
  
+     scanner.fetch_attributes()
+     for id, attribute in scanner.attributes.items():
+         if id<10:
+             pp.pprint({
+                 "id": id,
+                 "datatype": attribute.datatype,
+                 "value": attribute.value,
+                 "permission": attribute.permission
+             })
+ 
      @scanner.on_barcode
      def on_barcode(barcode):
          print("Scanned:")
          print(barcode.code, barcode.type)
-
+ 
  @cs.on_scanner_removed
  def on_scanner_removed(scanner):
      print("Scanner removed:")
@@ -46,19 +56,12 @@ A minimal example
  
  while True:
      time.sleep(0.1)
-     for scanner in scanners:
-         # should have been done in on_scanner_added
-         # but somehow it does not work immediately
-         # upon registration of a new scanner
-         scanner.pull_trigger()
-
+     # do nothing while the scanner is reading in continous mode
 
 
 *******************
 Running the example
 *******************
-
-Creating states and state machines is pretty straightforward:
 
 .. code-block:: sh
 
@@ -73,12 +76,24 @@ Creating states and state machines is pretty straightforward:
      'scannerID': '1',
      'serialnumber': '00000000K10U532B',
      'type': 'SNAPI'}
+ {   'datatype': 'F', 'id': 0, 'permission': 7, 'value': True}
+ {   'datatype': 'F', 'id': 1, 'permission': 7, 'value': True}
+ {   'datatype': 'F', 'id': 2, 'permission': 7, 'value': True}
+ {   'datatype': 'F', 'id': 3, 'permission': 7, 'value': True}
+ {   'datatype': 'F', 'id': 4, 'permission': 7, 'value': True}
+ {   'datatype': 'F', 'id': 5, 'permission': 7, 'value': False}
+ {   'datatype': 'F', 'id': 6, 'permission': 7, 'value': True}
+ {   'datatype': 'F', 'id': 7, 'permission': 7, 'value': False}
+ {   'datatype': 'F', 'id': 8, 'permission': 7, 'value': True}
+ {   'datatype': 'F', 'id': 9, 'permission': 7, 'value': False}
+ Scanned:
+ ('Hello World', '3')
  Scanned:
  ('00140092390052832143', '15')
  Scanned:
- ('01040092393881071000017500861331', '15')
+ ('31039999993000000072\x1d', '15')
  Scanned:
- ('00140092390052832143', '15')
+ ('01540092393881021000017500861331', '15')
  Scanned:
  ('00140092390052832143', '15')
  ^CScanner removed:

@@ -15,6 +15,16 @@ def on_scanner_added(scanner):
     scanners.append(scanner)
     scanner.pull_trigger()
 
+    scanner.fetch_attributes()
+    for id, attribute in scanner.attributes.items():
+        if id<10:
+            pp.pprint({
+                "id": id,
+                "datatype": attribute.datatype,
+                "value": attribute.value,
+                "permission": attribute.permission
+            })
+
     @scanner.on_barcode
     def on_barcode(barcode):
         print("Scanned:")
@@ -29,5 +39,4 @@ def on_scanner_removed(scanner):
 
 while True:
     time.sleep(0.1)
-    for scanner in scanners:
-        scanner.pull_trigger()
+    # do nothing while the scanner is reading in continous mode

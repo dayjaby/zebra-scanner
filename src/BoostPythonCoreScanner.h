@@ -40,9 +40,30 @@ public:
 	std::string type;
 };
 
+class Scanner;
+
+class Attribute
+{
+public:
+	Attribute(Scanner* s) : scanner(s) {}
+
+	py::object get_value() { return value; }
+	void set_value(py::object v);
+
+	int id;
+	py::object value;
+	char datatype;
+	int permission;
+
+private:
+	Scanner* scanner;
+};
+
 class Scanner
 {
 public:
+	Scanner();
+
 	bool active;		
 	std::string type;
 	std::string scannerID;
@@ -53,11 +74,14 @@ public:
 	std::string modelnumber;
 	std::string DoM;
 	std::string firmware;
+	py::dict attributes;
 
 	py::dict get_dict();
 
 	void PullTrigger();
 	void ReleaseTrigger();
+	void FetchAttributes();
+	void FetchAttributes(std::string);
 
 	void OnBarcodeDecorator(py::object& obj);
 	virtual void OnBarcode(std::auto_ptr<Barcode>& b);

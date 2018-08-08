@@ -30,7 +30,7 @@ print(zebra_scanner_module)
 
 setup(
     name="zebra-scanner",
-    version_format="0.1.3",
+    version_format="{tag}",
     author="David Jablonski",
     author_email="dayjaby@gmail.com",
     description="Scan barcodes with a zebra barcode scanner",

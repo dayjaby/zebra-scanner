@@ -1,6 +1,7 @@
 #include "BoostPythonCoreScanner.h"
 #include <stdlib.h>
 #include <sstream>
+#include <boost/python/make_function.hpp>
 
 template<class a>
 py::object call_python(py::object& fn, a& arg1) {
@@ -39,6 +40,8 @@ BOOST_PYTHON_MODULE(zebra_scanner)
 		.def("on_barcode", &Scanner::OnBarcodeDecorator)
 		.def("pull_trigger", &Scanner::PullTrigger)
 		.def("release_trigger", &Scanner::ReleaseTrigger)
+		.def("fetch_attributes", static_cast<void (Scanner::*)()>(&Scanner::FetchAttributes))
+		.def_readonly("attributes", &Scanner::attributes)
 		.def_readonly("type", &Scanner::type)
 		.def_readonly("scannerID", &Scanner::scannerID)
 		.def_readonly("serialnumber", &Scanner::serialnumber)
@@ -49,9 +52,18 @@ BOOST_PYTHON_MODULE(zebra_scanner)
 		.def_readonly("DoM", &Scanner::DoM)
 		.def_readonly("firmware", &Scanner::firmware);
 
+	class_<Attribute>("Attribute", py::no_init)
+		.def_readonly("id", &Attribute::id)
+		.def_readonly("permission", &Attribute::permission)
+		.def_readonly("datatype", &Attribute::datatype)
+		.add_property("value", &Attribute::get_value, &Attribute::set_value);
+
 	class_<Barcode, std::auto_ptr<Barcode> >("Barcode")
 		.def_readonly("code", &Barcode::code)
 		.def_readonly("type", &Barcode::type);
+}
+
+Scanner::Scanner() {
 }
 
 void Scanner::OnBarcodeDecorator(py::object& obj) {
@@ -64,16 +76,12 @@ void Scanner::OnBarcode(std::auto_ptr<Barcode>& b) {
 	}
 }
 
-
 void Scanner::PullTrigger()
 {
     StatusID status; 
     std::string inXml = "<inArgs><scannerID>" + scannerID + "</scannerID></inArgs>";
     std::string outXml;
     ::ExecCommand(CMD_DEVICE_PULL_TRIGGER, inXml, outXml, &status);
-	if(status != STATUS_OK) {
-		cout << "status not ok: " << outXml << endl;
-	}
 }
 
 void Scanner::ReleaseTrigger()
@@ -159,7 +167,69 @@ void CoreScanner::ParseScannerXML(pugi::xml_node& scanner) {
 	_scanners[id] = o;
 	o.attr("__dict__").attr("update")(s.get_dict());
 	PyGILState_Release(state);
+
+	// wait for some kind of response from the scanner
+	// so that we know we can access the scanner
+	// in our on_scanner_added callback
+	s.FetchAttributes("0");
 	OnScannerAdded(o);
+}
+
+void Scanner::FetchAttributes() {
+    std::string inXml = "<inArgs><scannerID>"+scannerID+"</scannerID></inArgs>";
+    StatusID sId;
+    std::string outXml;
+
+    ::ExecCommand(CMD_RSM_ATTR_GETALL, inXml, outXml, &sId);
+
+	pugi::xml_document outargs;
+	outargs.load_buffer_inplace(&outXml[0], outXml.size());
+	std::string attribute_list;
+	bool first = true;
+	for(pugi::xml_node attr = outargs.child("outArgs").child("arg-xml").child("response").child("attrib_list").child("attribute"); 
+			attr; 
+			attr = attr.next_sibling("attribute")) {
+		if(!first)
+			attribute_list += ',';
+		attribute_list += attr.child_value(); 
+		first = false;
+	}
+	FetchAttributes(attribute_list);
+}
+
+void Scanner::FetchAttributes(std::string attribute_list) {
+	std::string inXml = "<inArgs><scannerID>" + scannerID + 
+						"</scannerID><cmdArgs><arg-xml><attrib_list>" + 
+						attribute_list + "</attrib_list></arg-xml></cmdArgs></inArgs>";
+	
+    StatusID sId;
+	std::string outXmlA;
+	::ExecCommand(CMD_RSM_ATTR_GET, inXml, outXmlA, &sId);
+	pugi::xml_document outargs;
+	outargs.load_buffer_inplace(&outXmlA[0], outXmlA.size());
+	std::string False("False");
+	for(pugi::xml_node attr = outargs.child("outArgs").child("arg-xml").child("response").child("attrib_list").child("attribute"); 
+			attr; 
+			attr = attr.next_sibling("attribute")) {
+		Attribute a(this);
+		a.id = std::stoi(attr.child_value("id"));
+		a.datatype = attr.child_value("datatype")[0];
+		a.permission = std::stoi(attr.child_value("permission"));
+		if(a.datatype=='F') {
+			if(False.compare(attr.child_value("value")) == 0) {
+				a.value = py::object(false);
+			} else {
+				a.value = py::object(true);
+			}
+		} else {
+			a.value = py::object(attr.child_value("value"));
+		}
+		attributes[a.id] = a;
+	}
+}
+
+void Attribute::set_value(py::object v) {
+	///TODO: implement this
 }
 
 void CoreScanner::OnScannerAddedDecorator(py::object& obj) {
@@ -295,9 +365,13 @@ void CoreScanner::OnBarcodeEvent(short int eventType, std::string & pscanData)
 		std::string data = scanData.child_value("datalabel");
 		std::string result;
 		for(std::string::iterator i=data.begin(); i!=data.end(); ++i) {
-			char c = *(i++);
-			char d = *(i++);
-			if(c == '3') result.append(1, d);
+			std::stringstream ss;
+			char c1 = *(i++) - 48;
+			if(c1 > 9) c1 -= 39; 
+			char c2 = *(i++) - 48;
+			if(c2 > 9) c2 -= 39; 
+			char d = 16*c1+c2;;
+			result.append(1, d);
 		}
 		std::auto_ptr<Barcode> b{new Barcode()};
 		b->code = result;
