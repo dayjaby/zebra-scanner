@@ -4,7 +4,6 @@ import time
 from zebra_scanner import CoreScanner
 
 pp = pprint.PrettyPrinter(indent=4)
-scanners = []
 cs = CoreScanner()
 
 
@@ -12,7 +11,6 @@ cs = CoreScanner()
 def on_scanner_added(scanner):
     print("New scanner found:")
     pp.pprint(scanner.__dict__)
-    scanners.append(scanner)
     scanner.pull_trigger()
 
     scanner.fetch_attributes()
@@ -34,7 +32,6 @@ def on_scanner_added(scanner):
 def on_scanner_removed(scanner):
     print("Scanner removed:")
     scanner.release_trigger()
-    scanners.remove(scanner)
     pp.pprint(scanner.__dict__)
 
 while True:

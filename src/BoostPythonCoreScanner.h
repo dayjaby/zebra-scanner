@@ -37,7 +37,7 @@ class Barcode
 {
 public:
 	std::string code;
-	std::string type;
+	int type;
 };
 
 class Scanner;

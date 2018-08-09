@@ -375,7 +375,7 @@ void CoreScanner::OnBarcodeEvent(short int eventType, std::string & pscanData)
 		}
 		std::auto_ptr<Barcode> b{new Barcode()};
 		b->code = result;
-		b->type = scanData.child_value("datatype");
+		b->type = std::stoi(scanData.child_value("datatype"));
 		s.OnBarcode(b);
 	}
 }
