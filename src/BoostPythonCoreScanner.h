@@ -4,7 +4,7 @@
 /* 
  C++11X support Dual ABI issue 
 */
-#if __GNUC__ >= 5
+#if __GNUC__ == 5
 #define _GLIBCXX_USE_CXX11_ABI 0
 #endif
 
