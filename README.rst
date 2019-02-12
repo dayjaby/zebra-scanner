@@ -6,7 +6,7 @@ You can easily install zebra_scanner with pip:
 
 .. code-block:: sh
 
- sudo apt-get install libboost-all-dev libpugixml-dev
+ sudo apt-get install libboost-dev libboost-python-dev libpugixml-dev
  sudo pip install zebra-scanner
 
 

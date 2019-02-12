@@ -25,18 +25,20 @@ py::object call_python(py::object& fn, a& arg1) {
 	return ret;
 }
 
-BOOST_PYTHON_MODULE(zebra_scanner)
+// BOOST_PYTHON_MODULE(zebra_scanner)
+PYBIND11_MODULE(zebra_scanner, m)
 {
 	using namespace py;
 
-	class_<CoreScanner>("CoreScanner")
+	class_<CoreScanner>(m, "CoreScanner")
+		.def(py::init<>())
 		.def("open", &CoreScanner::Open)
 		.def("close", &CoreScanner::Close)
 		.def("on_scanner_added", &CoreScanner::OnScannerAddedDecorator)
 		.def("on_scanner_removed", &CoreScanner::OnScannerRemovedDecorator)
 		.def("fetch_scanners", &CoreScanner::FetchScanners);
 
-	class_<Scanner>("Scanner")
+	class_<Scanner>(m, "Scanner")
 		.def("on_barcode", &Scanner::OnBarcodeDecorator)
 		.def("pull_trigger", &Scanner::PullTrigger)
 		.def("release_trigger", &Scanner::ReleaseTrigger)
@@ -52,13 +54,14 @@ BOOST_PYTHON_MODULE(zebra_scanner)
 		.def_readonly("DoM", &Scanner::DoM)
 		.def_readonly("firmware", &Scanner::firmware);
 
-	class_<Attribute>("Attribute", py::no_init)
+	class_<Attribute>(m, "Attribute")
 		.def_readonly("id", &Attribute::id)
 		.def_readonly("permission", &Attribute::permission)
 		.def_readonly("datatype", &Attribute::datatype)
-		.add_property("value", &Attribute::get_value, &Attribute::set_value);
+		.def_property("value", &Attribute::get_value, &Attribute::set_value);
 
-	class_<Barcode, std::auto_ptr<Barcode> >("Barcode")
+	// used to be class_<Barcode, std::auto_ptr<Barcode> >(m, "Barcode")
+	class_<Barcode>(m, "Barcode")
 		.def_readonly("code", &Barcode::code)
 		.def_readonly("type", &Barcode::type);
 }
@@ -147,6 +150,27 @@ void CoreScanner::Open()
 	is_open = true;
 }
 
+#include <algorithm> 
+#include <cctype>
+#include <locale>
+
+static inline void ltrim(std::string &s) {
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+		return !std::isspace(ch);
+	}));
+}
+
+static inline void rtrim(std::string &s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+		return !std::isspace(ch);
+	}).base(), s.end());
+}
+
+static inline void trim(std::string &s) {
+	ltrim(s);
+	rtrim(s);
+}
+
 void CoreScanner::ParseScannerXML(pugi::xml_node& scanner) {
 	std::string id = scanner.child_value("scannerID");
 	Scanner s;
@@ -159,11 +183,11 @@ void CoreScanner::ParseScannerXML(pugi::xml_node& scanner) {
 	s.VID = scanner.child_value("VID");
 	s.modelnumber = scanner.child_value("modelnumber");
 	s.firmware = scanner.child_value("firmware");
-	boost::algorithm::trim(s.modelnumber);
-	boost::algorithm::trim(s.firmware);
+	trim(s.modelnumber);
+	trim(s.firmware);
 	s.DoM = scanner.child_value("DoM");
 	PyGILState_STATE state = PyGILState_Ensure();
-	py::object o(s);
+	py::object o = py::cast(s);
 	_scanners[id] = o;
 	o.attr("__dict__").attr("update")(s.get_dict());
 	PyGILState_Release(state);
@@ -217,14 +241,14 @@ void Scanner::FetchAttributes(std::string attribute_list) {
 		a.permission = std::stoi(attr.child_value("permission"));
 		if(a.datatype=='F') {
 			if(False.compare(attr.child_value("value")) == 0) {
-				a.value = py::object(false);
+				a.value = py::cast(false);
 			} else {
-				a.value = py::object(true);
+				a.value = py::cast(true);
 			}
 		} else {
-			a.value = py::object(attr.child_value("value"));
+			a.value = py::cast(attr.child_value("value"));
 		}
-		attributes[a.id] = a;
+		attributes[py::cast(a.id)] = a;
 	}
 }
 
@@ -236,7 +260,7 @@ void CoreScanner::OnScannerAddedDecorator(py::object& obj) {
 	on_added.push_back(CoreScanner::scanner_callback(obj));
 	for(std::map<std::string, py::object>::iterator i = _scanners.begin(); i != _scanners.end(); ++i) {
 		py::object& o = i->second;
-		Scanner& s = py::extract<Scanner&>(o);
+		Scanner& s = o.cast<Scanner&>();
 		if(s.active)
 			call_python(obj, o);
 	}
@@ -281,7 +305,7 @@ void CoreScanner::Close()
 {
 	for(std::map<std::string, py::object>::iterator i = _scanners.begin(); i != _scanners.end(); ++i) {
 		py::object& o = i->second;
-		Scanner& s = py::extract<Scanner&>(o);
+		Scanner& s = o.cast<Scanner&>();
 		if(s.active)
 			OnScannerRemoved(o);
 	}
@@ -312,7 +336,7 @@ void CoreScanner::OnPNPEvent( short eventType, std::string ppnpData )
 				FetchScanners();
 			} else {
 				py::object& o = _scanners[scanner.child_value("scannerID")];
-				Scanner& s = py::extract<Scanner&>(o);
+				Scanner& s = o.cast<Scanner&>();
 				if(s.active) {
 					s.active = false;
 					OnScannerRemoved(o);
@@ -353,7 +377,7 @@ void CoreScanner::OnBarcodeEvent(short int eventType, std::string & pscanData)
 		FetchScanners();
 		return;
 	}
-	Scanner& s = py::extract<Scanner&>(si->second);
+	Scanner& s = si->second.cast<Scanner&>();
 	if(!s.active) {
 		FetchScanners();
 		return;

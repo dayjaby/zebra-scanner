@@ -20,15 +20,17 @@ source_files = [
 zebra_scanner_module = Extension("zebra_scanner",
     include_dirs=['/usr/include/zebra-scanner', '/usr/include/python2.7', src_path],
     library_dirs=['/usr/lib/zebra-scanner/corescanner'],
-    libraries=['cs-client', 'cs-common', 'boost_python', 'python2.7', 'pugixml'],
+    libraries=['cs-client', 'cs-common', 'python2.7', 'pugixml'],
     sources=source_files,
-    extra_compile_args=['-Wno-deprecated', '-std=c++0x']
-
+    extra_compile_args=['-Wno-deprecated', '-std=c++11', '-fvisibility=hidden']
 )
+
+# os.environ["CC"] = "cc"
+# os.environ["C++"] = "c++"
 
 setup(
     name="zebra-scanner",
-    version="v0.2.2",
+    version="v0.2.3",
     author="David Jablonski",
     author_email="dayjaby@gmail.com",
     description="Scan barcodes with a zebra barcode scanner",

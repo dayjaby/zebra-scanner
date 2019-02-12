@@ -20,6 +20,7 @@
 #include <vector>
 #include <mutex>
 #include <memory>
+/*
 #include <boost/python.hpp>
 #include <boost/python/list.hpp>
 #include <boost/python/dict.hpp>
@@ -27,11 +28,14 @@
 #include <boost/python/handle.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/shared_ptr.hpp>
+*/
+#include <pybind11/pybind11.h>
+#include <pybind11/pytypes.h>
 #include "pugixml.hpp"
 #include <Python.h>
 
 using namespace std;
-namespace py = boost::python;
+namespace py = pybind11;
 
 class Barcode
 {
@@ -63,6 +67,7 @@ class Scanner
 {
 public:
 	Scanner();
+	virtual ~Scanner() {}
 
 	bool active;		
 	std::string type;
