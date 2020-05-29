@@ -99,6 +99,7 @@ public:
 	explicit CoreScanner();
 	virtual ~CoreScanner();
 
+    virtual void OnBinaryDataEvent(short eventType, int dataLength, short dataFormat, unsigned char* sfBinaryData, std::string& pScannerData);
     virtual void OnImageEvent( short eventType, int size, short imageFormat, char* sfimageData, int dataLength, std::string& pScannerData );
     virtual void OnVideoEvent( short eventType, int size, char* sfvideoData, int dataLength, std::string& pScannerData );
     virtual void OnBarcodeEvent( short eventType, std::string& pscanData );

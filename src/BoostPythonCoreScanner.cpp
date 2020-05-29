@@ -316,6 +316,10 @@ void CoreScanner::Close()
 
 
 /// TODO: implement python callbacks
+void CoreScanner::OnBinaryDataEvent(short eventType, int dataLength, short dataFormat, unsigned char* sfBinaryData, std::string& pScannerData)
+{
+}
+
 void CoreScanner::OnImageEvent( short eventType, int size, short imageFormat, char* sfimageData, int dataLength, std::string& pScannerData )
 {
 }
