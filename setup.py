@@ -3,6 +3,10 @@ import setuptools
 import os
 import sys
 
+def get_pybind_include():
+    import pybind11
+    return pybind11.get_include()
+
 src_path = os.path.abspath('./src')
 
 if 'ZEBRA_SCANNER_SRC_PATH' not in os.environ:
@@ -18,7 +22,12 @@ source_files = [
 ] + ([os.path.join(src_path, 'BoostPythonCoreScanner.h')] if sys.argv[1] == 'sdist' else [])
 
 zebra_scanner_module = Extension("zebra_scanner",
-    include_dirs=['/usr/include/zebra-scanner', '/usr/include/python2.7', src_path],
+    include_dirs=[
+        '/usr/include/zebra-scanner',
+        '/usr/include/python2.7',
+        get_pybind_include(),
+        src_path
+    ],
     library_dirs=['/usr/lib/zebra-scanner/corescanner'],
     libraries=['cs-client', 'cs-common', 'python2.7', 'pugixml'],
     sources=source_files,
