@@ -34,12 +34,9 @@ zebra_scanner_module = Extension("zebra_scanner",
     extra_compile_args=['-Wno-deprecated', '-std=c++11', '-fvisibility=hidden']
 )
 
-# os.environ["CC"] = "cc"
-# os.environ["C++"] = "c++"
-
 setup(
     name="zebra-scanner",
-    version="v0.2.3",
+    version="v0.2.4",
     author="David Jablonski",
     author_email="dayjaby@gmail.com",
     description="Scan barcodes with a zebra barcode scanner",

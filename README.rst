@@ -2,11 +2,13 @@
 Installing
 **********
 
+It's working on Ubuntu 18.04 with Zebra SDK 4.4, which you can download from https://www.zebra.com/de/de/support-downloads/software/developer-tools/scanner-sdk-for-linux.html
 You can easily install zebra_scanner with pip:
 
 .. code-block:: sh
 
- sudo apt-get install libboost-dev libboost-python-dev libpugixml-dev python-pybind11
+ sudo apt-get install libboost-dev libboost-python-dev libpugixml-dev
+ sudo pip install pybind11
  sudo pip install zebra-scanner
 
 
