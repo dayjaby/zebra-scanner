@@ -13,19 +13,23 @@ def on_scanner_added(scanner):
     scanner.pull_trigger()
 
     scanner.fetch_attributes()
+    skip_scanner = True
     for id, attribute in scanner.attributes.items():
         if id<10:
+            skip_scanner = False
             pp.pprint({
                 "id": id,
                 "datatype": attribute.datatype,
                 "value": attribute.value,
                 "permission": attribute.permission
             })
-
-    @scanner.on_barcode
-    def on_barcode(barcode):
-        print("Scanned:")
-        print(barcode.code, barcode.type)
+        else:
+            print(f"-DD- Skipping {id}")
+    if not skip_scanner:
+        @scanner.on_barcode
+        def on_barcode(barcode):
+            print("Scanned:")
+            print(barcode.code, barcode.type)
 
 @cs.on_scanner_removed
 def on_scanner_removed(scanner):
