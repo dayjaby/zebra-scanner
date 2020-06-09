@@ -6,7 +6,6 @@ from zebra_scanner import CoreScanner
 pp = pprint.PrettyPrinter(indent=4)
 cs = CoreScanner()
 
-
 @cs.on_scanner_added
 def on_scanner_added(scanner):
     print("New scanner found:")

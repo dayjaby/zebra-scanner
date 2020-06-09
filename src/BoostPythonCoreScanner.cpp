@@ -14,8 +14,8 @@ py::object call_python(py::object& fn, a& arg1) {
 		PyErr_Fetch(&e, &v, &t);
 		PyObject* e_obj = PyObject_Repr(e);
 		PyObject* v_obj = PyObject_Repr(v);
-		std::string e_str = PyString_AsString(e_obj);
-		std::string v_str = PyString_AsString(v_obj);
+		std::string e_str = PyUnicode_AsUTF8(e_obj);
+		std::string v_str = PyUnicode_AsUTF8(v_obj);
 		cout << "Error occured: " <<  e_str << "\n";
 		cout << v_str << "\n";
 		PyErr_Restore(e, v, t);
