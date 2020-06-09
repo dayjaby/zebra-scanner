@@ -143,7 +143,9 @@ void CoreScanner::Open()
     StatusID status;
     ::Open(this, SCANNER_TYPE_ALL, &status);
 
-    std::string inXml = "<inArgs><cmdArgs><arg-int>7</arg-int><arg-int>1,2,4,8,16,32,128</arg-int></cmdArgs></inArgs>";
+    // std::string inXml = "<inArgs><cmdArgs><arg-int>7</arg-int><arg-int>1,2,4,8,16,32,128</arg-int></cmdArgs></inArgs>";
+
+    std::string inXml = "<inArgs><cmdArgs><arg-int>6</arg-int><arg-int>1,2,4,8,16,32</arg-int></cmdArgs></inArgs>";
     std::string outXml;
     ::ExecCommand(CMD_REGISTER_FOR_EVENTS, inXml, outXml, &status);
 	FetchScanners();
@@ -189,7 +191,7 @@ void CoreScanner::ParseScannerXML(pugi::xml_node& scanner) {
 	PyGILState_STATE state = PyGILState_Ensure();
 	py::object o = py::cast(s);
 	_scanners[id] = o;
-	o.attr("__dict__").attr("update")(s.get_dict());
+	// o.attr("__dict__").attr("update")(s.get_dict());
 	PyGILState_Release(state);
 
 	// wait for some kind of response from the scanner

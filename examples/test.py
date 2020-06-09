@@ -9,7 +9,7 @@ cs = CoreScanner()
 @cs.on_scanner_added
 def on_scanner_added(scanner):
     print("New scanner found:")
-    pp.pprint(scanner.__dict__)
+    # pp.pprint(scanner.__dict__)
     scanner.pull_trigger()
 
     scanner.fetch_attributes()
@@ -31,7 +31,7 @@ def on_scanner_added(scanner):
 def on_scanner_removed(scanner):
     print("Scanner removed:")
     scanner.release_trigger()
-    pp.pprint(scanner.__dict__)
+    # pp.pprint(scanner.__dict__)
 
 while True:
     time.sleep(0.1)
