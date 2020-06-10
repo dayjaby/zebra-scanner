@@ -8,7 +8,7 @@ cs = CoreScanner()
 
 @cs.on_scanner_added
 def on_scanner_added(scanner):
-    print("New scanner found:")
+    print(f"New scanner found: <{scanner.GUID}>")
     # pp.pprint(scanner.__dict__)
     scanner.pull_trigger()
 
@@ -24,8 +24,10 @@ def on_scanner_added(scanner):
                 "permission": attribute.permission
             })
         else:
-            print(f"-DD- Skipping {id}")
-    if not skip_scanner:
+            # print(f"-DD- Skipping {id}")
+            pass
+    if scanner.GUID != "":
+        print(f"Registering scanner <{scanner.GUID}>")
         @scanner.on_barcode
         def on_barcode(barcode):
             print("Scanned:")
