@@ -27,7 +27,7 @@ def on_scanner_added(scanner):
             # print(f"-DD- Skipping {id}")
             pass
     if scanner.GUID != "":
-        print(f"Registering scanner <{scanner.GUID}>")
+        print(f"Registering scanner -{scanner.GUID}-")
         @scanner.on_barcode
         def on_barcode(barcode):
             print("Scanned:")

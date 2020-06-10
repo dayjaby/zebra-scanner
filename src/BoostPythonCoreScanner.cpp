@@ -70,15 +70,12 @@ Scanner::Scanner() {
 }
 
 void Scanner::OnBarcodeDecorator(py::object& obj) {
-  cout<<"-D- Scanner::OnBarcodeDecorator called : "<<this->scannerID<<"\n";
 	on_barcode.push_back(obj);
 }
 
-void Scanner::OnBarcode(std::auto_ptr<Barcode>& b) {
-  cout<<"-D-  Scanner::OnBarcode called : "<<this->scannerID<<"\n";
+void Scanner::OnBarcode(py::object& obj) {
 	for(std::vector<py::object>::iterator i=on_barcode.begin();i!=on_barcode.end();++i) {
-	    cout<<"-D- Scanner::OnBarcode -> call_python"<<"\n";
-	    call_python(*i, b);
+	    call_python(*i, obj);
 	}
 }
 
@@ -182,10 +179,8 @@ void CoreScanner::ParseScannerXML(pugi::xml_node& scanner) {
 	s.active = true;
 	s.type = scanner.attribute("type").value();
 	s.scannerID = id;
-	cout<<"-D- CoreScanner::ParseScannerXML : id = " <<id<<"\n";
 	s.serialnumber = scanner.child_value("serialnumber");
 	s.GUID = scanner.child_value("GUID");
-	cout<<"-D- CoreScanner::ParseScannerXML : GUID = " <<s.GUID<<"\n";
 	s.PID = scanner.child_value("PID");
 	s.VID = scanner.child_value("VID");
 	s.modelnumber = scanner.child_value("modelnumber");
@@ -379,7 +374,6 @@ void CoreScanner::OnDisconnect()
 
 void CoreScanner::OnBarcodeEvent(short int eventType, std::string & pscanData)
 {
-  cout << "-D- OnBarCodeEvent !!!  \n";
 	pugi::xml_document outargs;
 	outargs.load_buffer_inplace(&pscanData[0], pscanData.size());
 	pugi::xml_node args = outargs.child("outArgs");
@@ -398,7 +392,6 @@ void CoreScanner::OnBarcodeEvent(short int eventType, std::string & pscanData)
 	for(pugi::xml_node scanData = args.child("arg-xml").child("scandata"); 
 			scanData; 
 			scanData = scanData.next_sibling("scandata")) {
-	  cout << "-D- OnBarCodeEvent - 3 \n";
 
 		std::string data = scanData.child_value("datalabel");
 		std::string result;
@@ -411,12 +404,11 @@ void CoreScanner::OnBarcodeEvent(short int eventType, std::string & pscanData)
 			char d = 16*c1+c2;;
 			result.append(1, d);
 		}
-		std::auto_ptr<Barcode> b{new Barcode()};
-		b->code = result;
-		b->type = std::stoi(scanData.child_value("datatype"));
-		cout << "-D- OnBarCodeEvent - 4 \n";
-		s.OnBarcode(b);
-		cout << "-D- OnBarCodeEvent - 5 \n";
+		Barcode b;
+		b.code = result;
+		b.type = std::stoi(scanData.child_value("datatype"));
+		py::object o = py::cast(b);
+		s.OnBarcode(o);
 	}
 }
 

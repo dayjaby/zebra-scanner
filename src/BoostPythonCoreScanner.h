@@ -89,7 +89,7 @@ public:
 	void FetchAttributes(std::string);
 
 	void OnBarcodeDecorator(py::object& obj);
-	virtual void OnBarcode(std::auto_ptr<Barcode>& b);
+        virtual void OnBarcode(py::object& obj);
 	std::vector<py::object> on_barcode;
 };
 
