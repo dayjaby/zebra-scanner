@@ -45,7 +45,7 @@ setup(
     url="https://github.com/dayjaby/zebra-scanner",
     packages=setuptools.find_packages(),
     classifiers=[
-        "Programming Language :: Python",
+        "Programming Language :: Python3.6",
         "License :: OSI Approved :: GNU General Public License (GPL)",
         "Operating System :: OS Independent",
     ],
