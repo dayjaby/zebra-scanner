@@ -42,6 +42,7 @@ PYBIND11_MODULE(zebra_scanner, m)
 		.def("on_barcode", &Scanner::OnBarcodeDecorator)
 		.def("pull_trigger", &Scanner::PullTrigger)
 		.def("release_trigger", &Scanner::ReleaseTrigger)
+		.def("set_attribute", &Scanner::SetAttribute, py::arg("id"), py::arg("datatype"), py::arg("value"), py::arg("persist") = false)
 		.def("fetch_attributes", static_cast<void (Scanner::*)()>(&Scanner::FetchAttributes))
 		.def_readonly("attributes", &Scanner::attributes)
 		.def_readonly("type", &Scanner::type)
@@ -93,6 +94,20 @@ void Scanner::ReleaseTrigger()
     std::string inXml = "<inArgs><scannerID>" + scannerID + "</scannerID></inArgs>";
     std::string outXml;
     ::ExecCommand(CMD_DEVICE_RELEASE_TRIGGER, inXml, outXml, &status);
+}
+
+int Scanner::SetAttribute(std::string id, std::string datatype, std::string value, bool persist)
+{
+	CmdOpcode command = persist ? CMD_RSM_ATTR_STORE : CMD_RSM_ATTR_SET;
+    std::string inXml = "<inArgs><scannerID>" + scannerID + "</scannerID><cmdArgs><arg-xml><attrib_list><attribute>" +
+		"<id>" + id + "</id>" +
+		"<datatype>" + datatype + "</datatype>" +
+		"<value>" + value + "</value>" +
+		"</attribute></attrib_list></arg-xml></cmdArgs></inArgs>";
+    std::string outXml;
+    StatusID status;
+    ::ExecCommand(command, inXml, outXml, &status);
+	return status;
 }
 
 py::dict Scanner::get_dict() {

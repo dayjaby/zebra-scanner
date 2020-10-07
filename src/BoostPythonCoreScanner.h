@@ -85,6 +85,7 @@ public:
 
 	void PullTrigger();
 	void ReleaseTrigger();
+	int SetAttribute(std::string id, std::string datatype, std::string value, bool persist = false);
 	void FetchAttributes();
 	void FetchAttributes(std::string);
 
