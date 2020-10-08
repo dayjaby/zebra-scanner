@@ -44,6 +44,7 @@ PYBIND11_MODULE(zebra_scanner, m)
 		.def("release_trigger", &Scanner::ReleaseTrigger)
 		.def("set_attribute", &Scanner::SetAttribute, py::arg("id"), py::arg("datatype"), py::arg("value"), py::arg("persist") = false)
 		.def("fetch_attributes", static_cast<void (Scanner::*)()>(&Scanner::FetchAttributes))
+		.def("fetch_attributes", static_cast<void (Scanner::*)(std::string)>(&Scanner::FetchAttributes))
 		.def_readonly("attributes", &Scanner::attributes)
 		.def_readonly("type", &Scanner::type)
 		.def_readonly("scannerID", &Scanner::scannerID)
@@ -200,6 +201,7 @@ void CoreScanner::ParseScannerXML(pugi::xml_node& scanner) {
 	s.VID = scanner.child_value("VID");
 	s.modelnumber = scanner.child_value("modelnumber");
 	s.firmware = scanner.child_value("firmware");
+	trim(s.serialnumber);
 	trim(s.modelnumber);
 	trim(s.firmware);
 	s.DoM = scanner.child_value("DoM");
@@ -256,13 +258,21 @@ void Scanner::FetchAttributes(std::string attribute_list) {
 		a.id = std::stoi(attr.child_value("id"));
 		a.datatype = attr.child_value("datatype")[0];
 		a.permission = std::stoi(attr.child_value("permission"));
-		if(a.datatype=='F') {
+		// Information about data types is taken from zebra-scanner-4.4.1-8/Native/CsCommon/src/CsCommon.cpp
+		if (a.datatype=='F') { // Flag? A boolean
 			if(False.compare(attr.child_value("value")) == 0) {
 				a.value = py::cast(false);
 			} else {
 				a.value = py::cast(true);
 			}
-		} else {
+		}
+		else if (a.datatype=='B' || a.datatype=='W' || a.datatype=='D') { //uint8_t/uint16_t/uint32_t
+			a.value = py::cast(std::stoul(attr.child_value("value")));
+		}
+		else if (a.datatype=='I' || a.datatype=='L') { // int16_t/int32_t
+			a.value = py::cast(std::stol(attr.child_value("value")));
+		}
+		else { // String or single character
 			a.value = py::cast(attr.child_value("value"));
 		}
 		attributes[py::cast(a.id)] = a;

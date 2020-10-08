@@ -24,12 +24,11 @@ source_files = [
 zebra_scanner_module = Extension("zebra_scanner",
     include_dirs=[
         '/usr/include/zebra-scanner',
-        '/usr/include/python3.6',
         get_pybind_include(),
         src_path
     ],
     library_dirs=['/usr/lib/zebra-scanner/corescanner'],
-    libraries=['cs-client', 'cs-common', 'python3.6m', 'pugixml'],
+    libraries=['cs-client', 'cs-common', 'pugixml'],
     sources=source_files,
     extra_compile_args=['-Wno-deprecated', '-std=c++11', '-fvisibility=hidden']
 )
