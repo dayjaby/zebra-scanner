@@ -51,8 +51,9 @@ class Attribute
 public:
 	Attribute(Scanner* s) : scanner(s) {}
 
-	py::object get_value() { return value; }
-	void set_value(py::object v);
+	py::object GetValue() { return value; }
+	int SetValue(py::object v);
+	int StoreValue(py::object v);
 
 	int id;
 	py::object value;
@@ -60,6 +61,8 @@ public:
 	int permission;
 
 private:
+	int ExecuteSetOrStoreAttribute(CmdOpcode command, py::object v);
+	void CastValueToString(py::object v, std::string &value_as_string);
 	Scanner* scanner;
 };
 
@@ -85,7 +88,6 @@ public:
 
 	void PullTrigger();
 	void ReleaseTrigger();
-	int SetAttribute(std::string id, std::string datatype, std::string value, bool persist = false);
 	void FetchAttributes();
 	void FetchAttributes(std::string);
 
