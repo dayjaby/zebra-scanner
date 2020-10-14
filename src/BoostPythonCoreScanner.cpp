@@ -56,10 +56,13 @@ PYBIND11_MODULE(zebra_scanner, m)
 		.def_readonly("firmware", &Scanner::firmware);
 
 	class_<Attribute>(m, "Attribute")
+		.def("get_value", &Attribute::GetValue)
+		.def("set_value", &Attribute::SetValue)
+		.def("store_value", &Attribute::StoreValue)
 		.def_readonly("id", &Attribute::id)
 		.def_readonly("permission", &Attribute::permission)
 		.def_readonly("datatype", &Attribute::datatype)
-		.def_property("value", &Attribute::get_value, &Attribute::set_value);
+		.def_readonly("value", &Attribute::value);
 
 	// used to be class_<Barcode, std::auto_ptr<Barcode> >(m, "Barcode")
 	class_<Barcode>(m, "Barcode")
@@ -243,7 +246,7 @@ void Scanner::FetchAttributes(std::string attribute_list) {
 		a.id = std::stoi(attr.child_value("id"));
 		a.datatype = attr.child_value("datatype")[0];
 		a.permission = std::stoi(attr.child_value("permission"));
-		// Information about data types is taken from zebra-scanner-4.4.1-8/Native/CsCommon/src/CsCommon.cpp
+		// Information about data types is taken from zebra-scanner-4.4.1-8/Native/CsClient/src/CsDecodeIncomming.cpp
 		if (a.datatype=='F') { // Flag? A boolean
 			if(False.compare(attr.child_value("value")) == 0) {
 				a.value = py::cast(false);
@@ -264,8 +267,55 @@ void Scanner::FetchAttributes(std::string attribute_list) {
 	}
 }
 
-void Attribute::set_value(py::object v) {
-	///TODO: implement this
+int Attribute::SetValue(py::object v) {
+	return ExecuteSetOrStoreAttribute(CMD_RSM_ATTR_SET, v);
+}
+
+int Attribute::StoreValue(py::object v) {
+	return ExecuteSetOrStoreAttribute(CMD_RSM_ATTR_STORE, v);
+}
+
+int Attribute::ExecuteSetOrStoreAttribute(CmdOpcode command, py::object v)
+{
+	std::string value_as_string;
+	CastValueToString(v, value_as_string);
+    std::string inXml = "<inArgs><scannerID>" + scanner->scannerID + "</scannerID><cmdArgs><arg-xml><attrib_list><attribute>" +
+		"<id>" + std::to_string(id) + "</id>" +
+		"<datatype>" + datatype + "</datatype>" +
+		"<value>" + value_as_string + "</value>" +
+		"</attribute></attrib_list></arg-xml></cmdArgs></inArgs>";
+    std::string outXml;
+    StatusID status;
+	cout << "\n\n" << inXml << "\n\n";
+    ::ExecCommand(command, inXml, outXml, &status);
+	if (status == STATUS_OK) {
+		value = v; // Update local copy of the new value
+	}
+	return status;
+}
+
+void Attribute::CastValueToString(py::object v, std::string &value_as_string) {
+	// Information about data types is taken from zebra-scanner-4.4.1-8/Native/CsClient/src/CsDecodeIncomming.cpp
+	switch (datatype) {
+		case 'F': // Boolean (F for flag?)
+			value_as_string = v.cast<bool>() ? "True" : "False";
+			break;
+
+		case 'B': // uint8_t
+		case 'W': // uint16_t
+		case 'D': // uint32_t
+			value_as_string = std::to_string(v.cast<uint32_t>());
+			break;
+
+		case 'I': // int16_t
+		case 'L': // int32_t
+			value_as_string = std::to_string(v.cast<int32_t>());
+			break;
+
+		default: // A string
+			value_as_string = v.cast<std::string>();
+			break;
+	}
 }
 
 void CoreScanner::OnScannerAddedDecorator(py::object& obj) {
@@ -293,7 +343,6 @@ void CoreScanner::OnScannerRemoved(py::object& o) {
 		call_python(*i, o);
 	}
 }
-
 
 void CoreScanner::FetchScanners()
 {
