@@ -1,3 +1,15 @@
+****************
+Supported boards
+****************
+
+- ToDo
+
+******************
+Unsupported boards
+******************
+
+- MS4717
+
 **********
 Installing
 **********
@@ -8,8 +20,8 @@ You can easily install zebra_scanner with pip:
 .. code-block:: sh
 
  sudo apt-get install libboost-dev libboost-python-dev libpugixml-dev
- sudo pip install pybind11
- sudo pip install zebra-scanner
+ sudo pip3 install pybind11
+ sudo pip3 install zebra-scanner
 
 
 *****************
