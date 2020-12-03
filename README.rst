@@ -2,13 +2,13 @@
 Supported boards
 ****************
 
-- ToDo
+Check https://www.zebra.com/us/en/support-downloads/software/developer-tools/scanner-sdk-for-linux.html
 
 ******************
-Unsupported boards
+Known issues
 ******************
 
-- MS4717
+MS4717: CMD_DEVICE_SWITCH_HOST_MODE does not work
 
 **********
 Installing
