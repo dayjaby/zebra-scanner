@@ -286,7 +286,6 @@ int Attribute::ExecuteSetOrStoreAttribute(CmdOpcode command, py::object v)
 		"</attribute></attrib_list></arg-xml></cmdArgs></inArgs>";
     std::string outXml;
     StatusID status;
-	cout << "\n\n" << inXml << "\n\n";
     ::ExecCommand(command, inXml, outXml, &status);
 	if (status == STATUS_OK) {
 		value = v; // Update local copy of the new value
