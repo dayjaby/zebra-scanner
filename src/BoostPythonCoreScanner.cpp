@@ -465,7 +465,9 @@ void CoreScanner::OnBarcodeEvent(short int eventType, std::string & pscanData)
 		Barcode b;
 		b.code = result;
 		b.type = std::stoi(scanData.child_value("datatype"));
+		PyGILState_STATE state = PyGILState_Ensure();
 		py::object o = py::cast(b);
+		PyGILState_Release(state);
 		s.OnBarcode(o);
 	}
 }
