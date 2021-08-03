@@ -19,7 +19,7 @@ with open("README.rst", "r") as fh:
 
 source_files = [
     os.path.join(src_path, 'BoostPythonCoreScanner.cpp')
-] + ([os.path.join(src_path, 'BoostPythonCoreScanner.h')] if sys.argv[1] == 'sdist' else [])
+]
 
 zebra_scanner_module = Extension("zebra_scanner",
     include_dirs=[
@@ -35,7 +35,7 @@ zebra_scanner_module = Extension("zebra_scanner",
 
 setup(
     name="zebra-scanner",
-    version="v0.2.4",
+    version="v0.2.5",
     author="David Jablonski",
     author_email="dayjaby@gmail.com",
     description="Scan barcodes with a zebra barcode scanner",
@@ -44,8 +44,8 @@ setup(
     url="https://github.com/dayjaby/zebra-scanner",
     packages=setuptools.find_packages(),
     classifiers=[
-        "Programming Language :: Python3.6",
-        "License :: OSI Approved :: GNU General Public License (GPL)",
+        "Programming Language :: Python",
+        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
     ext_modules=[zebra_scanner_module]
