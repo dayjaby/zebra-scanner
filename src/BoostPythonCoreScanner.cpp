@@ -4,9 +4,12 @@
 #include <boost/python/make_function.hpp>
 
 template<class a>
-py::object call_python(py::object& fn, a& arg1) {
+py::object call_python(py::object& fn, a& arg1, bool ensure_gil=true) {
 	py::object ret;
-	PyGILState_STATE state = PyGILState_Ensure();
+	PyGILState_STATE gstate;
+	if (ensure_gil) {
+		gstate = PyGILState_Ensure();
+	}
 	try {
 		ret = fn(arg1);
 	} catch(const py::error_already_set&) {
@@ -21,7 +24,9 @@ py::object call_python(py::object& fn, a& arg1) {
 		PyErr_Restore(e, v, t);
 		throw;
 	}
-	PyGILState_Release(state);
+	if (ensure_gil) {
+		PyGILState_Release(gstate);
+	}
 	return ret;
 }
 
@@ -79,7 +84,7 @@ void Scanner::OnBarcodeDecorator(py::object& obj) {
 
 void Scanner::OnBarcode(py::object& obj) {
 	for(std::vector<py::object>::iterator i=on_barcode.begin();i!=on_barcode.end();++i) {
-	    call_python(*i, obj);
+	    call_python(*i, obj, false);
 	}
 }
 
@@ -467,8 +472,8 @@ void CoreScanner::OnBarcodeEvent(short int eventType, std::string & pscanData)
 		b.type = std::stoi(scanData.child_value("datatype"));
 		PyGILState_STATE state = PyGILState_Ensure();
 		py::object o = py::cast(b);
-		PyGILState_Release(state);
 		s.OnBarcode(o);
+		PyGILState_Release(state);
 	}
 }
 
