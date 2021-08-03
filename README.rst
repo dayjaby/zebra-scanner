@@ -21,7 +21,7 @@ You can easily install zebra_scanner with pip:
 
  sudo apt-get install libboost-dev libboost-python-dev libpugixml-dev
  sudo pip3 install pybind11
- sudo pip3 install . # in zebra-scanner directory
+ sudo pip3 install zebra-scanner
 
 
 *****************
