@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <sstream>
 #include <boost/python/make_function.hpp>
+#include <pybind11/numpy.h>
+
 
 template<class a>
 py::object call_python(py::object& fn, a& arg1, bool ensure_gil=true) {
@@ -45,6 +47,10 @@ PYBIND11_MODULE(zebra_scanner, m)
 
 	class_<Scanner>(m, "Scanner")
 		.def("on_barcode", &Scanner::OnBarcodeDecorator)
+		.def("on_image", &Scanner::OnImageDecorator)
+		.def("select_image_type", &Scanner::SelectImageType)
+		.def("select_image_mode", &Scanner::SelectImageMode)
+		.def("select_barcode_mode", &Scanner::SelectBarcodeMode)
 		.def("pull_trigger", &Scanner::PullTrigger)
 		.def("release_trigger", &Scanner::ReleaseTrigger)
 		.def("fetch_attributes", static_cast<void (Scanner::*)()>(&Scanner::FetchAttributes))
@@ -86,6 +92,41 @@ void Scanner::OnBarcode(py::object& obj) {
 	for(std::vector<py::object>::iterator i=on_barcode.begin();i!=on_barcode.end();++i) {
 	    call_python(*i, obj, false);
 	}
+}
+
+void Scanner::OnImageDecorator(py::object& obj) {
+	on_image.push_back(obj);
+}
+
+void Scanner::OnImage(py::object& obj) {
+	for(std::vector<py::object>::iterator i=on_image.begin();i!=on_image.end();++i) {
+	    call_python(*i, obj, false);
+	}
+}
+
+
+void Scanner::SelectImageType(std::string image_type)
+{
+    StatusID status;
+    std::string inXml = "<inArgs><scannerID>" + scannerID + "</scannerID><cmdArgs><arg-xml><attrib_list><attribute><id>304</id><datatype>B</datatype><value>" + image_type + "</value></attribute></attrib_list></arg-xml></cmdArgs></inArgs>";
+    std::string outXml;
+    ::ExecCommand(CMD_RSM_ATTR_SET, inXml, outXml, &status);
+}
+
+void Scanner::SelectBarcodeMode()
+{
+    StatusID status; 
+    std::string inXml = "<inArgs><scannerID>" + scannerID + "</scannerID></inArgs>";
+    std::string outXml;
+    ::ExecCommand(CMD_DEVICE_CAPTURE_BARCODE, inXml, outXml, &status);
+}
+
+void Scanner::SelectImageMode()
+{
+    StatusID status; 
+    std::string inXml = "<inArgs><scannerID>" + scannerID + "</scannerID></inArgs>";
+    std::string outXml;
+    ::ExecCommand(CMD_DEVICE_CAPTURE_IMAGE, inXml, outXml, &status);
 }
 
 void Scanner::PullTrigger()
@@ -385,8 +426,28 @@ void CoreScanner::OnBinaryDataEvent(short eventType, int dataLength, short dataF
 {
 }
 
-void CoreScanner::OnImageEvent( short eventType, int size, short imageFormat, char* sfimageData, int dataLength, std::string& pScannerData )
+void CoreScanner::OnImageEvent( short eventType, int size, short imageFormat, char* sfimageData, int dataLength, std::string& pscanData )
 {
+	pugi::xml_document outargs;
+	outargs.load_buffer_inplace(&pscanData[0], pscanData.size());
+	pugi::xml_node args = outargs.child("outArgs");
+	std::string scannerID = args.child_value("scannerID");
+	std::map<std::string, py::object>::iterator si = _scanners.find(scannerID);
+	if(si == _scanners.end()) {
+		FetchScanners();
+		return;
+	}
+	Scanner& s = si->second.cast<Scanner&>();
+	if(!s.active) {
+		FetchScanners();
+		return;
+	}
+
+	PyGILState_STATE state = PyGILState_Ensure();
+	// TODO: create py::object o from image data
+	py::bytes result(sfimageData, size);
+	s.OnImage(result);
+	PyGILState_Release(state);
 }
 
 void CoreScanner::OnVideoEvent( short eventType, int size, char* sfvideoData, int dataLength, std::string& pScannerData )

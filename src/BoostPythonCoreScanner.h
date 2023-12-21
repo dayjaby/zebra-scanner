@@ -86,6 +86,9 @@ public:
 
 	py::dict get_dict();
 
+	void SelectImageType(std::string); // TIFF/JPG/BMP
+	void SelectImageMode();
+	void SelectBarcodeMode();
 	void PullTrigger();
 	void ReleaseTrigger();
 	void FetchAttributes();
@@ -93,6 +96,10 @@ public:
 
 	void OnBarcodeDecorator(py::object& obj);
         virtual void OnBarcode(py::object& obj);
+
+	void OnImageDecorator(py::object& obj);
+	virtual void OnImage(py::object& obj);
+	std::vector<py::object> on_image;
 	std::vector<py::object> on_barcode;
 };
 
